@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopSmart - Your One-Stop Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .carousel {
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+        }
+        .carousel-item {
+            scroll-snap-align: start;
+        }
+        .chatbot-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        @media (max-width: 768px) {
+            .bottom-nav {
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            }
+        }
+        .robot {
+            position: fixed;
+            bottom: 120px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            z-index: 100;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .robot-head {
+            position: relative;
+            width: 40px;
+            height: 30px;
+            background-color: #3B82F6;
+            border-radius: 10px;
+            margin: 0 auto;
+        }
+        .robot-eye {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            top: 8px;
+            transition: all 0.3s ease;
+        }
+        .robot-eye.left {
+            left: 10px;
+        }
+        .robot-eye.right {
+            right: 10px;
+        }
+        .robot-mouth {
+            position: absolute;
+            width: 20px;
+            height: 4px;
+            background-color: white;
+            bottom: 5px;
+            left: 10px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        .robot-body {
+            width: 36px;
+            height: 24px;
+            background-color: #2563EB;
+            border-radius: 6px;
+            margin: 2px auto 0;
+        }
+        .robot-arm {
+            position: absolute;
+            width: 5px;
+            height: 15px;
+            background-color: #2563EB;
+            top: 34px;
+            transition: all 0.3s ease;
+        }
+        .robot-arm.left {
+            left: 12px;
+            transform-origin: top center;
+        }
+        .robot-arm.right {
+            right: 12px;
+            transform-origin: top center;
+        }
+        .robot-leg {
+            position: absolute;
+            width: 6px;
+            height: 10px;
+            background-color: #1E40AF;
+            top: 56px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        .robot-leg.left {
+            left: 20px;
+        }
+        .robot-leg.right {
+            right: 20px;
+        }
+        .happy .robot-mouth {
+            transform: scale(1, 1.5);
+            border-radius: 4px 4px 10px 10px;
+        }
+        .very-happy .robot-mouth {
+            transform: scale(1, 2);
+            border-radius: 4px 4px 15px 15px;
+        }
+        .jump {
+            animation: jump 0.5s ease;
+        }
+        .wave .robot-arm.left {
+            animation: wave 1s ease;
+        }
+        @keyframes jump {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes wave {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-30deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-30deg); }
+            100% { transform: rotate(0deg); }
+        }
+        .scroll-animation {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+        .scroll-animation.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 sticky top-0 z-50">
+        <div class="container mx-auto flex flex-wrap items-center justify-between">
+            <h1 class="text-2xl font-bold">ShopSmart</h1>
+            <div class="flex items-center space-x-4">
+                <button id="loginBtn" class="hover:text-blue-200"><i class="bi bi-person"></i> Login</button>
+                <button id="cartBtn" class="hover:text-blue-200"><i class="bi bi-cart3"></i> Cart (0)</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Bar -->
+    <div class="bg-blue-500 p-4">
+        <div class="container mx-auto">
+            <div class="flex gap-2">
+                <select class="p-2 rounded-l w-32" id="categorySelect">
+                    <option value="all">All Categories</option>
+                    <option value="mens">Men's Fashion</option>
+                    <option value="womens">Women's Fashion</option>
+                    <option value="kids">Children's Fashion</option>
+                    <option value="toys">Toys & Games</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="home">Home & Kitchen</option>
+                    <option value="shoes">Shoes & Footwear</option>
+                </select>
+                <input type="text" placeholder="Search products..." class="flex-1 p-2 rounded-r" id="searchInput">
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="relative bg-gray-900 h-[400px] overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-75"></div>
+        <div class="container mx-auto relative h-full flex items-center px-4">
+            <div class="text-white max-w-2xl scroll-animation">
+                <h2 class="text-4xl font-bold mb-4">Welcome to ShopSmart</h2>
+                <p class="text-xl mb-6">Discover amazing deals on trending products</p>
+                <button class="bg-white text-blue-600 px-6 py-2 rounded-full font-semibold hover:bg-blue-50">
+                    Shop Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories -->
+    <section class="py-8 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl font-bold mb-6 scroll-animation">Shop by Category</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="category-card bg-gray-100 p-4 rounded-lg text-center cursor-pointer hover:bg-gray-200 scroll-animation">
+                    <i class="bi bi-person-workspace text-3xl text-blue-600"></i>
+                    <h3 class="mt-2">Men's Fashion</h3>
+                </div>
+                <div class="category-card bg-gray-100 p-4 rounded-lg text-center cursor-pointer hover:bg-gray-200 scroll-animation" style="transition-delay: 0.1s;">
+                    <i class="bi bi-handbag text-3xl text-pink-600"></i>
+                    <h3 class="mt-2">Women's Fashion</h3>
+                </div>
+                <div class="category-card bg-gray-100 p-4 rounded-lg text-center cursor-pointer hover:bg-gray-200 scroll-animation" style="transition-delay: 0.2s;">
+                    <i class="bi bi-people text-3xl text-green-600"></i>
+                    <h3 class="mt-2">Children's Fashion</h3>
+                </div>
+                <div class="category-card bg-gray-100 p-4 rounded-lg text-center cursor-pointer hover:bg-gray-200 scroll-animation" style="transition-delay: 0.3s;">
+                    <i class="bi bi-controller text-3xl text-purple-600"></i>
+                    <h3 class="mt-2">Toys & Games</h3>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                <div class="category-card bg-gray-100 p-4 rounded-lg text-center cursor-pointer hover:bg-gray-200 scroll-animation" style="transition-delay: 0.4s;">
+                    <i class="bi bi-laptop text-3xl text-yellow-600"></i>
+                    <h3 class="mt-2">Electronics</h3>
+                </div>
+                <div class="category-card bg-gray-100 p-4 rounded-lg text-center cursor-pointer hover:bg-gray-200 scroll-animation" style="transition-delay: 0.5s;">
+                    <i class="bi bi-house-door text-3xl text-red-600"></i>
+                    <h3 class="mt-2">Home & Kitchen</h3>
+                </div>
+                <div class="category-card bg-gray-100 p-4 rounded-lg text-center cursor-pointer hover:bg-gray-200 scroll-animation" style="transition-delay: 0.6s;">
+                    <i class="bi bi-bootstrap-reboot text-3xl text-indigo-600"></i>
+                    <h3 class="mt-2">Shoes & Footwear</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="py-8">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl font-bold mb-6 scroll-animation">Featured Products</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="productContainer">
+                <!-- Products will be dynamically added here -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- Best Sellers -->
+    <section class="py-8 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl font-bold mb-6 scroll-animation">Best Sellers</h2>
+            <div class="overflow-x-auto">
+                <div class="flex space-x-4 pb-4 carousel">
+                    <div class="carousel-item scroll-animation min-w-[250px]">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=200" alt="Smartwatch" class="w-full h-48 object-cover rounded mb-4">
+                            <h3 class="font-semibold">Premium Smartwatch</h3>
+                            <p class="text-blue-600 font-bold">$149.99</p>
+                            <div class="text-yellow-400 mb-2">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-half"></i>
+                            </div>
+                            <button onclick="addToCart(5)" class="mt-2 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                    <div class="carousel-item scroll-animation min-w-[250px]" style="transition-delay: 0.1s;">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <img src="https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=200" alt="Wireless Keyboard" class="w-full h-48 object-cover rounded mb-4">
+                            <h3 class="font-semibold">Wireless Keyboard</h3>
+                            <p class="text-blue-600 font-bold">$59.99</p>
+                            <div class="text-yellow-400 mb-2">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star"></i>
+                            </div>
+                            <button onclick="addToCart(6)" class="mt-2 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                    <div class="carousel-item scroll-animation min-w-[250px]" style="transition-delay: 0.2s;">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <img src="https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&w=200" alt="Bluetooth Speaker" class="w-full h-48 object-cover rounded mb-4">
+                            <h3 class="font-semibold">Bluetooth Speaker</h3>
+                            <p class="text-blue-600 font-bold">$79.99</p>
+                            <div class="text-yellow-400 mb-2">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <button onclick="addToCart(7)" class="mt-2 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                    <div class="carousel-item scroll-animation min-w-[250px]" style="transition-delay: 0.3s;">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <img src="https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=200" alt="Smart Home Hub" class="w-full h-48 object-cover rounded mb-4">
+                            <h3 class="font-semibold">Smart Home Hub</h3>
+                            <p class="text-blue-600 font-bold">$129.99</p>
+                            <div class="text-yellow-400 mb-2">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-half"></i>
+                            </div>
+                            <button onclick="addToCart(8)" class="mt-2 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Newsletter -->
+    <section class="py-12 bg-blue-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-3xl mx-auto text-center scroll-animation">
+                <h2 class="text-2xl font-bold mb-3">Subscribe to Our Newsletter</h2>
+                <p class="mb-6 text-gray-600">Stay updated with the latest products and exclusive deals</p>
+                <div class="flex flex-col md:flex-row gap-2 justify-center">
+                    <input type="email" placeholder="Your email address" class="p-3 rounded flex-1 max-w-sm border">
+                    <button class="bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700">
+                        Subscribe
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Chat Assistant -->
+    <div id="chatbot" class="fixed bottom-20 right-4 w-80 bg-white rounded-lg shadow-xl hidden z-50">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-semibold">AI Assistant</h3>
+            <button onclick="toggleChat()" class="text-gray-500 hover:text-gray-700">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="chatbot-container p-4" id="chatMessages">
+            <div class="mb-4">
+                <div class="bg-blue-100 p-3 rounded-lg inline-block">
+                    Hello! How can I help you today?
+                </div>
+            </div>
+        </div>
+        <div class="p-4 border-t">
+            <div class="flex gap-2">
+                <input type="text" id="userInput" placeholder="Type your message..." 
+                       class="flex-1 p-2 border rounded">
+                <button onclick="sendMessage()" class="bg-blue-600 text-white px-4 rounded">
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Robot Assistant -->
+    <div class="robot" id="robot">
+        <div class="robot-head">
+            <div class="robot-eye left"></div>
+            <div class="robot-eye right"></div>
+            <div class="robot-mouth"></div>
+        </div>
+        <div class="robot-body"></div>
+        <div class="robot-arm left"></div>
+        <div class="robot-arm right"></div>
+        <div class="robot-leg left"></div>
+        <div class="robot-leg right"></div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="font-bold text-lg mb-4">ShopSmart</h3>
+                    <p class="text-gray-300">Your one-stop shop for all your needs</p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-300 hover:text-white">Home</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Products</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Categories</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Deals</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Customer Service</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-300 hover:text-white">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">FAQs</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Returns & Refunds</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Shipping</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-300 hover:text-white">Terms of Service</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
+                <p>&copy; 2023 ShopSmart. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <nav class="md:hidden fixed bottom-0 w-full bg-white bottom-nav z-40">
+        <div class="flex justify-around py-2">
+            <button class="flex flex-col items-center text-gray-600">
+                <i class="bi bi-house text-xl"></i>
+                <span class="text-xs">Home</span>
+            </button>
+            <button class="flex flex-col items-center text-gray-600">
+                <i class="bi bi-person text-xl"></i>
+                <span class="text-xs">Profile</span>
+            </button>
+            <button class="flex flex-col items-center text-gray-600">
+                <i class="bi bi-cart3 text-xl"></i>
+                <span class="text-xs">Cart</span>
+            </button>
+            <button class="flex flex-col items-center text-gray-600" onclick="toggleChat()">
+                <i class="bi bi-chat-dots text-xl"></i>
+                <span class="text-xs">AI Help</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        // Sample product data
+        const products = [
+            {
+                id: 1,
+                name: "Wireless Earbuds",
+                price: 99.99,
+                image: "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?auto=format&fit=crop&w=200",
+                rating: 4.5
+            },
+            {
+                id: 2,
+                name: "Smart Watch",
+                price: 199.99,
+                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=200",
+                rating: 4.8
+            },
+            {
+                id: 3,
+                name: "Premium Headphones",
+                price: 299.99,
+                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200",
+                rating: 4.2
+            },
+            {
+                id: 4,
+                name: "Laptop Pro",
+                price: 1299.99,
+                image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=200",
+                rating: 4.9
+            },
+            {
+                id: 5,
+                name: "Premium Smartwatch",
+                price: 149.99,
+                image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=200",
+                rating: 4.7
+            },
+            {
+                id: 6,
+                name: "Wireless Keyboard",
+                price: 59.99,
+                image: "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=200",
+                rating: 4.0
+            },
+            {
+                id: 7,
+                name: "Bluetooth Speaker",
+                price: 79.99,
+                image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&w=200",
+                rating: 5.0
+            },
+            {
+                id: 8,
+                name: "Smart Home Hub",
+                price: 129.99,
+                image: "https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=200",
+                rating: 4.6
+            }
+        ];
+
+        // Initialize cart
+        let cart = [];
+
+        // Render products
+        function renderProducts() {
+            const container = document.getElementById('productContainer');
+            container.innerHTML = products.slice(0, 4).map((product, index) => `
+                <div class="bg-white p-4 rounded-lg shadow scroll-animation" style="transition-delay: ${index * 0.1}s">
+                    <img src="${product.image}" alt="${product.name}" class="w-full h-48 object-cover rounded mb-4">
+                    <h3 class="font-semibold">${product.name}</h3>
+                    <p class="text-blue-600 font-bold">$${product.price}</p>
+                    <div class="text-yellow-400 mb-2">
+                        ${renderStars(product.rating)}
+                    </div>
+                    <button onclick="addToCart(${product.id})" 
+                            class="mt-2 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                        Add to Cart
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Render star ratings
+        function renderStars(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= Math.floor(rating)) {
+                    stars += '<i class="bi bi-star-fill"></i> ';
+                } else if (i === Math.ceil(rating) && !Number.isInteger(rating)) {
+                    stars += '<i class="bi bi-star-half"></i> ';
+                } else {
+                    stars += '<i class="bi bi-star"></i> ';
+                }
+            }
+            return stars;
+        }
+
+        // Add to cart functionality
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            cart.push(product);
+            updateCartCount();
+            
+            // Make robot happy and jump
+            const robot = document.getElementById('robot');
+            robot.classList.add('jump');
+            robot.classList.add('happy');
+            
+            setTimeout(() => {
+                robot.classList.remove('jump');
+            }, 500);
+            
+            setTimeout(() => {
+                robot.classList.remove('happy');
+            }, 2000);
+            
+            alert('Product added to cart!');
+        }
+
+        // Update cart count
+        function updateCartCount() {
+            const cartBtn = document.getElementById('cartBtn');
+            cartBtn.innerHTML = `<i class="bi bi-cart3"></i> Cart (${cart.length})`;
+            
+            // Make robot very happy when cart has 3+ items
+            if (cart.length >= 3) {
+                document.getElementById('robot').classList.add('very-happy');
+            }
+        }
+
+        // Chat functionality
+        function toggleChat() {
+            const chatbot = document.getElementById('chatbot');
+            chatbot.classList.toggle('hidden');
+            
+            // Wave when chat is opened
+            if (!chatbot.classList.contains('hidden')) {
+                document.getElementById('robot').classList.add('wave');
+                setTimeout(() => {
+                    document.getElementById('robot').classList.remove('wave');
+                }, 1000);
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value;
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Simulate AI response
+            const response = await processAIResponse(message);
+            addMessage(response, 'ai');
+        }
+
+        function addMessage(message, sender) {
+            const container = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'mb-4';
+            
+            const msgContent = document.createElement('div');
+            msgContent.className = sender === 'user' 
+                ? 'bg-blue-600 text-white p-3 rounded-lg inline-block ml-auto'
+                : 'bg-blue-100 p-3 rounded-lg inline-block';
+            msgContent.textContent = message;
+
+            msgDiv.appendChild(msgContent);
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            // Make robot happy after message
+            if (sender === 'ai') {
+                const robot = document.getElementById('robot');
+                robot.classList.add('happy');
+                setTimeout(() => {
+                    robot.classList.remove('happy');
+                }, 2000);
+            }
+        }
+
+        async function processAIResponse(message) {
+            // Make robot look like it's thinking
+            const robot = document.getElementById('robot');
+            const leftEye = robot.querySelector('.robot-eye.left');
+            const rightEye = robot.querySelector('.robot-eye.right');
+            
+            // Eyes looking up thinking animation
+            leftEye.style.transform = 'translateY(-3px)';
+            rightEye.style.transform = 'translateY(-3px)';
+            
+            // Simulate AI processing
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Reset eyes
+            leftEye.style.transform = 'translateY(0)';
+            rightEye.style.transform = 'translateY(0)';
+            
+            // Different responses based on keywords
+            if (message.toLowerCase().includes('hello') || message.toLowerCase().includes('hi')) {
+                return "Hello! How can I help with your shopping today?";
+            } else if (message.toLowerCase().includes('product') || message.toLowerCase().includes('recommend')) {
+                return "Based on trending items, I'd recommend checking out our wireless earbuds or smart watches. Would you like to see more options?";
+            } else if (message.toLowerCase().includes('price') || message.toLowerCase().includes('discount')) {
+                return "We have several items on sale today! The wireless earbuds are 20% off, and there's a buy-one-get-one deal on select accessories.";
+            } else if (message.toLowerCase().includes('shipping') || message.toLowerCase().includes('delivery')) {
+                return "We offer free shipping on orders over $50. Standard delivery takes 3-5 business days, and express shipping is available for an additional fee.";
+            } else {
+                return "I'm here to help! Can you tell me more about what you're looking for? You can ask about products, pricing, shipping, or recommendations.";
+            }
+        }
+        
+        // Scroll animation functionality
+        function checkScroll() {
+            const elements = document.querySelectorAll('.scroll-animation');
+            elements.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+                
+                if (rect.top <= windowHeight * 0.9) {
+                    el.classList.add('visible');
+                }
+            });
+            
+            // Make robot happy occasionally during scrolling
+            if (Math.random() > 0.9) {
+                const robot = document.getElementById('robot');
+                robot.classList.add('happy');
+                setTimeout(() => {
+                    robot.classList.remove('happy');
+                }, 1500);
+            }
+        }
+        
+        // Robot click interaction
+        document.getElementById('robot').addEventListener('click', () => {
+            const robot = document.getElementById('robot');
+            robot.classList.add('wave');
+            setTimeout(() => {
+                robot.classList.remove('wave');
+                toggleChat();
+            }, 1000);
+        });
+        
+        // Category card click animation
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const robot = document.getElementById('robot');
+                robot.classList.add('happy');
+                setTimeout(() => {
+                    robot.classList.remove('happy');
+                }, 1500);
+            });
+        });
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            renderProducts();
+            // Initial check for elements in view on page load
+            checkScroll();
+        });
+        
+        // Listen for scroll events
+        window.addEventListener('scroll', checkScroll);
+        
+        // Make robot jump once at start
+        setTimeout(() => {
+            const robot = document.getElementById('robot');
+            robot.classList.add('jump');
+            setTimeout(() => {
+                robot.classList.remove('jump');
+            }, 500);
+        }, 1000);
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
